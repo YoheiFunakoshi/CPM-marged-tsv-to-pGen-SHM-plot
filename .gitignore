@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.test_tmp/
+tests/_runtime/
+pgen_cache.tsv
+test_output/
+small_test_output/
+small_real_input.umi_exact.igblast.airr.tsv
+full_test_output/
+full_test_output_conservative/
+*.tmp
