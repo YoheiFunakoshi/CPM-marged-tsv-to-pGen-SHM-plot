@@ -116,6 +116,56 @@ DUPCOUNT副解析を選択した場合だけ、ファイル名に
 - `locus`, `productive`, `v_call`, `j_call`
 - 同じx-y座標に重なるfamily数とsupporting read数
 
+## 最終産物の見方
+
+CPM版では、最終産物を **主解析** と **補助解析** に分けて見ます。
+最初に確認する中心データは `*_pgen_shm_rows.xlsx` です。これはフィルター後に採用されたAIRR各行を、1 exact UMI familyとして残したrow-levelデータです。図だけではなく、このExcel/TSVを解析本体として扱います。
+
+### 主解析として見るもの
+
+- `*_pgen_shm_rows.xlsx`：最終データ本体。1行 = 1 exact UMI familyです。
+- `*_pgen_shm_points.tsv`：同じrow-levelデータをTSVで保存したものです。
+- `*_pgen_shm_kde_exact_umi_family.png`：CPM版の主図候補です。exact UMI family数を単位としてpGen-SHM分布をKDE表示します。
+- `*_pgen_shm_scatter_exact_umi_family.png`：KDEで見えにくい点の存在確認に使います。
+- `*_qc_summary.tsv` と `*_run_conditions.json`：採用条件、除外理由、解析単位、DUPCOUNT副解析の有無を確認します。
+
+`*_pgen_shm_kde_exact_umi_family.png`では、x軸が `log10(pGen)`、y軸がSHMです。
+1点の元になるのは、フィルター後のAIRR 1行、すなわち1 exact UMI familyです。
+同じx-y座標に複数familyが重なる場合は、その座標の密度にfamily数が反映されます。
+したがって、CPM版の主図は「read数」ではなく「UMI family数」を反映した図です。
+
+### 補助的に見るもの
+
+- `*_pgen_shm_kde_exact_umi_family_log_density.png`：低密度集団を見落とさないための確認図です。通常KDEで薄く見える集団を確認する目的で使います。
+- `*_pgen_bins.tsv`：pGen binごとに、unique junction AA、exact UMI family、DUPCOUNT supporting readを別列で保存します。
+- `*_shm_hist_exact_umi_family.tsv/.png`：SHM分布をexact UMI family単位で確認します。
+- `*_pgen_shm_roi_summary.tsv`：低SHM・高pGenなどの領域を図の色ではなく数値で確認します。
+
+### beta1互換出力
+
+`beta1`を含むファイルは、旧解析・前任者法との比較用です。現在の主解析ではありません。
+
+- `*_pgen_shm_kde_beta1_unique_junction_unweighted.png`：unique junctionを1点として扱う旧法比較用の図です。
+- `*_pgen_shm_kde_beta1_exact_umi_family.png`：beta1形式の座標にexact UMI family数を反映した比較図です。
+
+beta1互換出力は、過去図との見え方を比較するために残しています。最終判断では、まずrow-levelの `*_pgen_shm_rows.xlsx` と `*_pgen_shm_kde_exact_umi_family.png` を見ます。
+
+### DUPCOUNT重み付き副解析
+
+DUPCOUNTは、1 exact UMI familyを支えていた元merged read数です。直感的には「UMIでまとめる前のread数の名残」です。
+GUIで `Also create DUPCOUNT supporting-read-weighted plots` を選んだ場合だけ、`dupcount_supporting_reads` を含むファイルが追加されます。
+
+DUPCOUNT重み付き図では、点の単位はUMI familyのままですが、KDEやヒストグラムの重みとして `supporting_read_count`、つまりDUPCOUNTを使います。
+これはUMIなしデータのread数重み付きに近い見方ですが、PCR増幅やシーケンス深度の影響を受けやすいため、CPM版では副解析として扱います。
+
+解釈の目安は次の通りです。
+
+- exact UMI family主解析でもDUPCOUNT副解析でも同じ集団が強い：family数としてもread支持としても強い集団です。
+- exact UMI family主解析では弱いがDUPCOUNT副解析で強い：少数familyが多く読まれた可能性があり、増幅・samplingの影響を考慮します。
+- DUPCOUNT副解析だけを主結論にしない：UMIがあるCPMでは、主解析単位はexact UMI familyです。
+
+短くまとめると、CPM版では **最終データ本体は `*_pgen_shm_rows.xlsx`、主図は `*_pgen_shm_kde_exact_umi_family.png`、DUPCOUNT重み付き図はread数寄りの補助確認** です。
+
 ## CLI
 
 ```powershell
